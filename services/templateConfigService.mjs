@@ -10,17 +10,19 @@ const SHOPS_TABLE = process.env.SHOPS_TABLE_NAME || 'Shops';
 
 /**
  * Fetch template configuration for a shop
- * 1. Gets shop's configured templateId from Shops table
- * 2. Fetches shop-specific config from TemplateConfigurations table
+ * 1. Gets shop's configured templateId and company details from Shops table
+ * 2. Fetches shop-specific styling config from TemplateConfigurations table
  * 3. Falls back to default template config from Templates table
  * 4. Falls back to env variables if not found in DB
+ * Company details are now stored in Shops.configurations.companyDetails
  * @param {string} shop - Shop domain (e.g., "mystore.myshopify.com")
  * @returns {Promise<Object>} Template configuration object
  */
 export async function getTemplateConfig(shop) {
     try {
-        // Step 1: Get shop's configured templateId
+        // Step 1: Get shop's configured templateId and company details
         let templateId = 'minimalist'; // Default fallback
+        let companyDetails = null;
         
         try {
             const shopResult = await dynamodb.send(new GetCommand({
@@ -28,29 +30,44 @@ export async function getTemplateConfig(shop) {
                 Key: { shop }
             }));
             
-            if (shopResult.Item && shopResult.Item.templateId) {
-                templateId = shopResult.Item.templateId;
-                console.log(`✅ Shop ${shop} is using template: ${templateId}`);
+            if (shopResult.Item) {
+                if (shopResult.Item.templateId) {
+                    templateId = shopResult.Item.templateId;
+                    console.log(`✅ Shop ${shop} is using template: ${templateId}`);
+                }
+                
+                // Get company details from configurations.companyDetails
+                if (shopResult.Item.configurations) {
+                    const configurations = typeof shopResult.Item.configurations === 'string' 
+                        ? JSON.parse(shopResult.Item.configurations)
+                        : shopResult.Item.configurations;
+                    
+                    companyDetails = configurations.companyDetails || null;
+                    if (companyDetails) {
+                        console.log(`✅ Found company details in Shops table for ${shop}`);
+                    }
+                }
             } else {
-                console.log(`⚠️ Shop not found or no templateId set for ${shop}, using default: ${templateId}`);
+                console.log(`⚠️ Shop not found for ${shop}, using default: ${templateId}`);
             }
         } catch (shopError) {
             console.error(`❌ Error fetching shop: ${shopError.message}, using default template: ${templateId}`);
         }
         
-        // Step 2: Try to fetch shop-specific configuration
+        // Step 2: Try to fetch shop-specific styling configuration
         const configResult = await dynamodb.send(new GetCommand({
             TableName: TEMPLATE_CONFIG_TABLE,
             Key: { shop, templateId }
         }));
 
         if (configResult.Item) {
-            console.log(`✅ Using DB config for shop: ${shop}, template: ${templateId}`);
+            console.log(`✅ Using DB styling config for shop: ${shop}, template: ${templateId}`);
             return {
                 source: 'database',
                 templateId: configResult.Item.templateId,
                 styling: configResult.Item.styling || {},
-                company: configResult.Item.company || {},
+                // Company details from Shops table take precedence
+                company: companyDetails || configResult.Item.company || {},
                 useDatabase: true
             };
         }
@@ -68,14 +85,20 @@ export async function getTemplateConfig(shop) {
                 source: 'template_default',
                 templateId: templateResult.Item.templateId,
                 styling: templateResult.Item.defaultConfig.styling || {},
-                company: templateResult.Item.defaultConfig.company || {},
+                // Company details from Shops table take precedence
+                company: companyDetails || templateResult.Item.defaultConfig.company || {},
                 useDatabase: true
             };
         }
 
         // Step 4: Fallback to environment variables
         console.log(`⚠️ Template not found in DB, falling back to env variables`);
-        return getEnvConfig();
+        const envConfig = getEnvConfig();
+        // Merge company details from Shops table if available
+        if (companyDetails) {
+            envConfig.company = companyDetails;
+        }
+        return envConfig;
 
     } catch (error) {
         console.error('❌ Error fetching template config from DB:', error);
