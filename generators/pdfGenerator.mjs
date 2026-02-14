@@ -1,14 +1,18 @@
 import PDFDocument from 'pdfkit';
 import { minimalistTemplate } from './templates/minimalistTemplate.mjs';
+import { zenTemplate } from './templates/zenTemplate.mjs';
 
 /**
- * Get the selected template based on environment variable or default
+ * Get the selected template based on templateId parameter or environment variable
+ * @param {string} templateId - Template ID from config
  * @returns {Object} Template module
  */
-function getTemplate() {
-    const templateName = process.env.INVOICE_TEMPLATE || 'minimalist';
+function getTemplate(templateId) {
+    const templateName = templateId || process.env.INVOICE_TEMPLATE || 'minimalist';
     
     switch (templateName.toLowerCase()) {
+        case 'zen':
+            return zenTemplate;
         case 'minimalist':
         default:
             return minimalistTemplate;
@@ -36,8 +40,17 @@ export async function generateInvoicePDF(data, templateConfig = null) {
         doc.on('error', reject);
         
         try {
-            // Get selected template
-            const template = getTemplate();
+            // Get selected template based on config
+            const template = getTemplate(templateConfig?.template);
+            
+            console.log(`📄 Generating invoice with template: ${templateConfig?.template || 'minimalist'}`);
+            console.log(`📊 Invoice data keys: ${Object.keys(data).join(', ')}`);
+            console.log(`📊 Order keys: ${data.order ? Object.keys(data.order).join(', ') : 'N/A'}`);
+            console.log(`📊 Customer keys: ${data.customer ? Object.keys(data.customer).join(', ') : 'N/A'}`);
+            console.log(`📊 Customer name: ${data.customer?.name}`);
+            console.log(`📊 ShippingAddress keys: ${data.shippingAddress ? Object.keys(data.shippingAddress).join(', ') : 'N/A'}`);
+            console.log(`📊 LineItems count: ${data.lineItems?.length}, first item keys: ${data.lineItems?.[0] ? Object.keys(data.lineItems[0]).join(', ') : 'N/A'}`);
+            console.log(`📊 Totals keys: ${data.totals ? Object.keys(data.totals).join(', ') : 'N/A'}`);
             
             // Use provided config or fallback to env variable
             const colorScheme = templateConfig ? 
