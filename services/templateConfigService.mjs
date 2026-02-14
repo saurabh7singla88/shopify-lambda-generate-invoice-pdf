@@ -178,7 +178,8 @@ export function formatConfigForPDF(config) {
             tableSize: config.styling?.itemTableFontSize || config.styling?.fonts?.tableSize || 8
         },
         styling: {
-            headerBackgroundColor: config.styling?.headerBackgroundColor || '#333333',
+            documentHeaderBgColor: config.styling?.documentHeaderBgColor || config.styling?.headerBackgroundColor || '#333333',
+            tableHeaderBgColor: config.styling?.tableHeaderBgColor || config.styling?.headerBackgroundColor || '#333333',
             headerTextColor: config.styling?.headerTextColor || '#ffffff'
         },
         colors: {

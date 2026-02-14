@@ -71,10 +71,13 @@ export const zenTemplate = {
         const titleLineHeight = titleSize * 1.2;
         const bodyLineHeight = bodySize * 1.35;
         
+        // Get document header color from config or default to primary
+        const documentHeaderBgColor = templateConfig?.styling?.documentHeaderBgColor || colorScheme.primary;
+        
         // Draw colorful gradient header bar (increased height to accommodate all address lines)
         const gradientHeight = 140;
         doc.rect(0, 0, 595, gradientHeight)
-           .fill(colorScheme.primary);
+           .fill(documentHeaderBgColor);
         
         // Add decorative accent bar at bottom of gradient
         doc.rect(0, gradientHeight - 4, 595, 4)
@@ -307,12 +310,12 @@ export const zenTemplate = {
         yPos += 40;
         
         // Get header colors from config or defaults
-        const headerBgColor = templateConfig?.styling?.headerBackgroundColor || colorScheme.primary;
+        const tableHeaderBgColor = templateConfig?.styling?.tableHeaderBgColor || colorScheme.primary;
         const headerTextColor = templateConfig?.styling?.headerTextColor || '#ffffff';
         
         // Colorful table header with rounded corners
         doc.roundedRect(50, yPos, 495, 35, 4)
-           .fill(headerBgColor);
+           .fill(tableHeaderBgColor);
         
         // Table headers - conditionally show CGST/SGST or IGST
         const showCGSTSGST = data.totals.cgst && data.totals.sgst;
