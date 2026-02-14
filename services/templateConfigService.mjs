@@ -1,5 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({});
 const dynamodb = DynamoDBDocumentClient.from(client);
@@ -54,23 +54,34 @@ export async function getTemplateConfig(shop) {
             console.error(`❌ Error fetching shop: ${shopError.message}, using default template: ${templateId}`);
         }
         
-        // Step 2: Try to fetch shop-specific styling configuration
-        const configResult = await dynamodb.send(new GetCommand({
+        // Step 2: Try to fetch active template configuration for shop
+        // Query for the active config using the isActive flag
+        console.log(`[Step 2] Querying TemplateConfigurations for shop: ${shop} with isActive=true`);
+        const configResult = await dynamodb.send(new QueryCommand({
             TableName: TEMPLATE_CONFIG_TABLE,
-            Key: { shop, templateId }
+            KeyConditionExpression: 'shop = :shop',
+            FilterExpression: 'isActive = :isActive',
+            ExpressionAttributeValues: {
+                ':shop': shop,
+                ':isActive': true
+            }
         }));
 
-        if (configResult.Item) {
-            console.log(`✅ Using DB styling config for shop: ${shop}, template: ${templateId}`);
+        console.log(`[Step 2] Query result: ${configResult.Items?.length || 0} items found`);
+        if (configResult.Items && configResult.Items.length > 0) {
+            const activeConfig = configResult.Items[0];
+            console.log(`✅ Using active DB config for shop: ${shop}, template: ${activeConfig.templateId}`);
             return {
                 source: 'database',
-                templateId: configResult.Item.templateId,
-                styling: configResult.Item.styling || {},
+                templateId: activeConfig.templateId,
+                styling: activeConfig.styling || {},
                 // Company details from Shops table take precedence
-                company: companyDetails || configResult.Item.company || {},
+                company: companyDetails || activeConfig.company || {},
                 useDatabase: true
             };
         }
+        
+        console.log(`⚠️ No active configuration found, proceeding to Step 3 with templateId: ${templateId}`);
 
         // Step 3: Configuration not found - fetch default template
         console.log(`⚠️ Shop config not found, fetching default template: ${templateId}`);
@@ -167,7 +178,8 @@ export function formatConfigForPDF(config) {
             tableSize: config.styling?.itemTableFontSize || config.styling?.fonts?.tableSize || 8
         },
         styling: {
-            headerBackgroundColor: config.styling?.headerBackgroundColor || '#333333',
+            documentHeaderBgColor: config.styling?.documentHeaderBgColor || config.styling?.headerBackgroundColor || '#333333',
+            tableHeaderBgColor: config.styling?.tableHeaderBgColor || config.styling?.headerBackgroundColor || '#333333',
             headerTextColor: config.styling?.headerTextColor || '#ffffff'
         },
         colors: {
