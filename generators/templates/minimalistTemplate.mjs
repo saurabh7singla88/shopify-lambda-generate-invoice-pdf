@@ -549,10 +549,32 @@ export const minimalistTemplate = {
         const bodySize = templateConfig?.fonts?.bodySize || 11;
         const bodyLineHeight = bodySize * 1.5;
         
-        yPos += bodyLineHeight * 4;
-        
         const companyState = templateConfig?.company?.address?.state || 'the respective';
         const companyEmail = templateConfig?.company?.email || null;
+        
+        // Calculate total height needed for footer content
+        const pageHeight = doc.page.height - doc.page.margins.bottom;
+        const notesText = data.order.notes || '';
+        const contactText = companyEmail ? `If you have any questions, please contact at ${companyEmail}` : '';
+        const disclaimerText = `All disputes are subject to ${companyState} jurisdiction only. Goods once sold will only be taken back or exchanged as per the store\'s exchange/return policy`;
+        
+        // Estimate footer height
+        doc.font(fontFamily).fontSize(bodySize - 2);
+        const notesHeight = notesText ? doc.heightOfString(notesText, { width: 495 }) : 0;
+        const contactHeight = contactText ? doc.heightOfString(contactText, { width: 495 }) : 0;
+        doc.fontSize(bodySize - 3);
+        const disclaimerHeight = doc.heightOfString(disclaimerText, { width: 495 });
+        
+        const headingHeight = bodyLineHeight + 5;
+        const totalFooterHeight = headingHeight + notesHeight + bodyLineHeight + contactHeight + bodyLineHeight + disclaimerHeight + 20;
+        
+        // Determine spacing before footer: use smaller gap if space is tight
+        const availableSpace = pageHeight - yPos;
+        const desiredGap = bodyLineHeight * 4;
+        const minGap = bodyLineHeight * 1.5;
+        const gap = availableSpace > (totalFooterHeight + desiredGap) ? desiredGap : minGap;
+        
+        yPos += gap;
         
         if (data.order.notes) {
             doc.font(fontFamily)
@@ -560,24 +582,24 @@ export const minimalistTemplate = {
                .fillColor('#6b7280')
                .text('NOTES', 50, yPos);
             
-            yPos += bodyLineHeight + 5;
+            yPos += headingHeight;
             doc.fontSize(bodySize - 2)
                .fillColor('#111827')
-               .text(data.order.notes, 50, yPos, { width: 495 });
+               .text(notesText, 50, yPos, { width: 495 });
             
-            yPos += bodyLineHeight - 2;
+            yPos += notesHeight + bodyLineHeight * 0.5;
             
             // Contact information
             if (companyEmail) {
                doc.fontSize(bodySize - 2)
                   .fillColor('#111827')
-                  .text(`\nIf you have any questions, please contact at ${companyEmail}`, 50, yPos, { width: 495 });
+                  .text(contactText, 50, yPos, { width: 495 });
+               yPos += contactHeight + bodyLineHeight * 0.5;
             }
 
-            yPos += bodyLineHeight * 2;
             doc.fontSize(bodySize - 3)
                .fillColor('#111827')
-               .text(`\nAll disputes are subject to ${companyState} jurisdiction only. Goods once sold will only be taken back or exchanged as per the store\'s exchange/return policy`, 50, yPos, { width: 495 });
+               .text(disclaimerText, 50, yPos, { width: 495 });
         }
         
         return yPos;
