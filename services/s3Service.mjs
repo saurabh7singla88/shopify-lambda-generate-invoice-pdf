@@ -43,6 +43,15 @@ export async function uploadInvoiceToS3(pdfBuffer, orderName, shop = 'default') 
  */
 export async function downloadImageFromS3(s3Key) {
     try {
+        // For local testing, check if LOCAL_ASSETS_PATH is set
+        if (process.env.LOCAL_ASSETS_PATH) {
+            const fs = await import('fs');
+            const path = await import('path');
+            const localPath = path.join(process.env.LOCAL_ASSETS_PATH, s3Key);
+            console.log(`Loading image from local path: ${localPath}`);
+            return fs.readFileSync(localPath);
+        }
+        
         const getObjectParams = {
             Bucket: process.env.S3_BUCKET_NAME,
             Key: s3Key

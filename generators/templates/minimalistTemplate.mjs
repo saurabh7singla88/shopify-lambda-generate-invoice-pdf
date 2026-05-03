@@ -230,12 +230,12 @@ export const minimalistTemplate = {
         yPos += 30;
         
         // Get header colors from config or defaults
-        const headerBgColor = templateConfig?.styling?.headerBackgroundColor || colorScheme.primary;
+        const tableHeaderBgColor = templateConfig?.styling?.tableHeaderBgColor || templateConfig?.styling?.headerBackgroundColor || colorScheme.primary;
         const headerTextColor = templateConfig?.styling?.headerTextColor || colorScheme.background;
         
         // Table header with border
         doc.rect(50, yPos, 495, 35)
-           .fillAndStroke(headerBgColor, headerBgColor);
+           .fillAndStroke(tableHeaderBgColor, tableHeaderBgColor);
         
         // Table headers - conditionally show CGST/SGST or IGST based on transaction type
         const showCGSTSGST = data.totals.cgst && data.totals.sgst;
@@ -466,11 +466,11 @@ export const minimalistTemplate = {
         const totalBoxWidth = (totalsValueX + totalsValueWidth) - totalBoxX + 5;
         
         // Get header colors from config or defaults
-        const headerBgColor = templateConfig?.styling?.headerBackgroundColor || colorScheme.primary;
+        const tableHeaderBgColor = templateConfig?.styling?.tableHeaderBgColor || templateConfig?.styling?.headerBackgroundColor || colorScheme.primary;
         const headerTextColor = templateConfig?.styling?.headerTextColor || colorScheme.background;
         
         doc.rect(totalBoxX, yPos - 10, totalBoxWidth, totalBoxHeight)
-           .fillColor(headerBgColor)
+           .fillColor(tableHeaderBgColor)
            .fill();
         
         doc.fontSize(bodySize + 2)
