@@ -27,8 +27,8 @@
  */
 
 import { randomUUID } from 'crypto';
-import { generateInvoicePDF } from './generators/pdfGenerator.mjs';
-import { uploadInvoiceToS3 } from './services/s3Service.mjs';
+import { generateInvoicePDF, generateCreditNotePDF } from './generators/pdfGenerator.mjs';
+import { uploadInvoiceToS3, uploadCreditNoteToS3 } from './services/s3Service.mjs';
 import { sendInvoiceNotification } from './services/snsService.mjs';
 import { getTemplateConfig, formatConfigForPDF } from './services/templateConfigService.mjs';
 
@@ -37,6 +37,37 @@ export const handler = async (event) => {
         console.log('lambda-generate-pdf-invoice invoked');
         console.log('Event keys:', Object.keys(event));
 
+        // ── Credit Note path ──────────────────────────────────────────────────
+        if (event.documentType === 'creditNote') {
+            const { creditNoteData, shop, creditNoteId } = event;
+
+            if (!creditNoteData || !shop || !creditNoteId) {
+                return {
+                    statusCode: 400,
+                    body: JSON.stringify({ error: 'Missing required fields: creditNoteData, shop, creditNoteId' }),
+                };
+            }
+
+            console.log(`Generating credit note PDF for ${creditNoteId}, shop ${shop}`);
+
+            const rawConfig = await getTemplateConfig(shop);
+            const templateConfig = formatConfigForPDF(rawConfig);
+
+            const pdfBuffer = await generateCreditNotePDF(creditNoteData, templateConfig);
+            console.log(`Credit note PDF generated: ${(pdfBuffer.length / 1024).toFixed(2)} KB`);
+
+            const { fileName, s3Url } = await uploadCreditNoteToS3(pdfBuffer, creditNoteId, shop);
+            console.log(`Credit note PDF uploaded to S3: ${fileName}`);
+
+            return {
+                statusCode: 200,
+                creditNoteId,
+                fileName,
+                s3Url,
+            };
+        }
+
+        // ── Invoice path (default) ────────────────────────────────────────────
         const { invoiceData, shop, orderId, orderName } = event;
 
         if (!invoiceData || !shop) {

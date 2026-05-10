@@ -37,6 +37,36 @@ export async function uploadInvoiceToS3(pdfBuffer, orderName, shop = 'default') 
 }
 
 /**
+ * Uploads a credit note PDF buffer to S3
+ * @param {Buffer} pdfBuffer - The PDF file buffer
+ * @param {string} creditNoteId - Credit note ID for filename
+ * @param {string} shop - Shop domain for organizing files
+ * @returns {Promise<Object>} Object with fileName and s3Url (pre-signed URL valid for 48 hours)
+ */
+export async function uploadCreditNoteToS3(pdfBuffer, creditNoteId, shop = 'default') {
+    const sanitizedShop = shop.replace(/\./g, '-');
+    const sanitizedId = creditNoteId.replace(/[^a-zA-Z0-9-]/g, '-');
+    const fileName = `shops/${sanitizedShop}/credit-notes/cn-${sanitizedId}-${Date.now()}.pdf`;
+
+    const uploadParams = {
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: fileName,
+        Body: pdfBuffer,
+        ContentType: 'application/pdf',
+    };
+
+    await s3Client.send(new PutObjectCommand(uploadParams));
+    console.log(`Credit note PDF uploaded to S3: ${fileName}`);
+
+    const s3Url = await getSignedUrl(s3Client, new GetObjectCommand({
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: fileName,
+    }), { expiresIn: 172800 }); // 48 hours
+
+    return { fileName, s3Url };
+}
+
+/**
  * Downloads an image from S3 (for logos, signatures, etc.)
  * @param {string} s3Key - The S3 key/path of the image
  * @returns {Promise<Buffer>} Image buffer
