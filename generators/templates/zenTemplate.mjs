@@ -169,7 +169,7 @@ export const zenTemplate = {
         doc.font(fontFamily)
            .fontSize(bodySize)
            .fillColor('#111827')
-           .text(data.order.name || 'N/A', 50, yPos);
+           .text(data.invoiceNumber || data.order.name || 'N/A', 50, yPos);
         
         yPos += bodyLineHeight + 8;
         doc.font(fontFamily + '-Bold')

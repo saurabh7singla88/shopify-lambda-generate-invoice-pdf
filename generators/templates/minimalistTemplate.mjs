@@ -169,15 +169,24 @@ export const minimalistTemplate = {
         
         doc.fontSize(bodySize)
            .fillColor('#6b7280')
-           .text('Order Number:', 50, yPos);
-        const orderLabelWidth = doc.widthOfString('Order Number:');
+           .text('Invoice Number:', 50, yPos);
+        const invoiceLabelWidth = doc.widthOfString('Invoice Number:');
         doc.fillColor('#111827')
-           .text(data.order.name, 50 + orderLabelWidth + labelGap, yPos);
+           .text(data.invoiceNumber || data.order.name, 50 + invoiceLabelWidth + labelGap, yPos);
         
         // Right Column - Customer Name
         doc.fontSize(bodySize)
            .fillColor('#111827')
            .text(data.customer.name, 300, yPos, { width: 245, align: 'right' });
+        
+        yPos += bodyLineHeight + 4;
+        
+        // Left Column - Order Number (Shopify reference)
+        doc.fillColor('#6b7280')
+           .text('Order Number:', 50, yPos);
+        const orderLabelWidth = doc.widthOfString('Order Number:');
+        doc.fillColor('#111827')
+           .text(data.order.name, 50 + orderLabelWidth + labelGap, yPos);
         
         yPos += bodyLineHeight + 4;
         
