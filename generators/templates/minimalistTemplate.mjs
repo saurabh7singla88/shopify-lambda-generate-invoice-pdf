@@ -244,7 +244,8 @@ export const minimalistTemplate = {
         
         // Table header with border
         doc.rect(50, yPos, 495, 35)
-           .fillAndStroke(tableHeaderBgColor, tableHeaderBgColor);
+           .lineWidth(1)
+           .fillAndStroke(tableHeaderBgColor, colorScheme.secondary);
         
         // Table headers - conditionally show CGST/SGST or IGST based on transaction type
         const showCGSTSGST = data.totals.cgst && data.totals.sgst;
@@ -299,6 +300,7 @@ export const minimalistTemplate = {
         }
         
         yPos += 35;
+        const headerBottomY = yPos; // Remember for separator line drawn after all rows
         
         // Table rows with borders
         data.lineItems.forEach((item, index) => {
@@ -373,6 +375,13 @@ export const minimalistTemplate = {
             
             yPos += rowHeight;
         });
+
+        // Draw header-to-first-row separator last so it sits on top of the row border
+        doc.moveTo(50, headerBottomY)
+           .lineTo(545, headerBottomY)
+           .strokeColor(colorScheme.secondary)
+           .lineWidth(1)
+           .stroke();
         
         return yPos;
     },

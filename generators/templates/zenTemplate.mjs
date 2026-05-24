@@ -315,7 +315,8 @@ export const zenTemplate = {
         
         // Colorful table header with rounded corners
         doc.roundedRect(50, yPos, 495, 35, 4)
-           .fill(tableHeaderBgColor);
+           .lineWidth(1)
+           .fillAndStroke(tableHeaderBgColor, colorScheme.secondary);
         
         // Table headers - conditionally show CGST/SGST or IGST
         const showCGSTSGST = data.totals.cgst && data.totals.sgst;
@@ -355,6 +356,7 @@ export const zenTemplate = {
         }
         
         yPos += 35;
+        const headerBottomY = yPos; // Remember for separator line drawn after all rows
         
         // Table rows with alternating colors
         data.lineItems.forEach((item, index) => {
@@ -443,6 +445,13 @@ export const zenTemplate = {
                .lineWidth(0.5)
                .stroke();
         });
+
+        // Draw header-to-first-row separator last so it sits on top of the row border
+        doc.moveTo(50, headerBottomY)
+           .lineTo(545, headerBottomY)
+           .strokeColor(colorScheme.secondary)
+           .lineWidth(1)
+           .stroke();
         
         return yPos;
     },
