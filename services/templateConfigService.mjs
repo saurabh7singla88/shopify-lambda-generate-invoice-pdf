@@ -193,8 +193,8 @@ export function formatConfigForPDF(config) {
             name: config.company?.name || config.company?.companyName || 'Your Company Name',
             legalName: config.company?.legalName || config.company?.name || 'Legal Entity Name',
             address: {
-                line1: config.company?.addressLine1 || config.company?.address || 'Address Line 1',
-                line2: config.company?.addressLine2 || 'Address Line 2',
+                line1: config.company?.addressLine1 || config.company?.address || '',
+                line2: config.company?.addressLine2 || '',
                 city: config.company?.city || '',
                 state: config.company?.state || '',
                 pincode: config.company?.pincode || ''

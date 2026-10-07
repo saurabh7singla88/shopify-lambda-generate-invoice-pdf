@@ -22,8 +22,8 @@ function buildEmailMessage(invoiceData, s3Url, templateConfig) {
     
     const companyName = templateConfig?.company?.name || 'Your Company Name';
     const companyLegalName = templateConfig?.company?.legalName || 'Legal Entity Name';
-    const companyAddress1 = templateConfig?.company?.address?.line1 || 'Address Line 1';
-    const companyAddress2 = templateConfig?.company?.address?.line2 || 'Address Line 2';
+    const companyAddress1 = templateConfig?.company?.address?.line1 || '';
+    const companyAddress2 = templateConfig?.company?.address?.line2 || '';
     const companyGSTIN = templateConfig?.company?.gstin || 'GSTIN Number';
     
     return `

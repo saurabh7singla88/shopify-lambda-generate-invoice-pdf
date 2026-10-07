@@ -54,8 +54,8 @@ export const zenTemplate = {
     async renderHeader(doc, data, colorScheme, templateConfig = null) {
         const companyName = templateConfig?.company?.name || 'Your Company Name';
         const companyLegalName = templateConfig?.company?.legalName || 'Legal Entity Name';
-        const companyAddress1 = templateConfig?.company?.address?.line1 || 'Address Line 1';
-        const companyAddress2 = templateConfig?.company?.address?.line2 || 'Address Line 2';
+        const companyAddress1 = templateConfig?.company?.address?.line1 || '';
+        const companyAddress2 = templateConfig?.company?.address?.line2 || '';
         const companyCity = templateConfig?.company?.address?.city || '';
         const companyState = templateConfig?.company?.address?.state || '';
         const companyPincode = templateConfig?.company?.address?.pincode || '';
@@ -98,12 +98,16 @@ export const zenTemplate = {
            .fillColor('rgba(255, 255, 255, 0.95)')
            .text(companyLegalName, 50, yPos);
         
-        yPos += bodyLineHeight - 1;
-        doc.text(companyAddress1, 50, yPos);
-        
-        yPos += bodyLineHeight - 1;
-        doc.text(companyAddress2, 50, yPos);
-        
+        if (companyAddress1) {
+            yPos += bodyLineHeight - 1;
+            doc.text(companyAddress1, 50, yPos);
+        }
+
+        if (companyAddress2) {
+            yPos += bodyLineHeight - 1;
+            doc.text(companyAddress2, 50, yPos);
+        }
+
         yPos += bodyLineHeight - 1;
         const cityStateZip = `${companyCity}${companyState ? ', ' + companyState : ''}${companyPincode ? ' - ' + companyPincode : ''}`.trim();
         if (cityStateZip && cityStateZip !== '-') {

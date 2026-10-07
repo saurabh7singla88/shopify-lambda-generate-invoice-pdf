@@ -62,8 +62,8 @@ export const minimalistTemplate = {
     async renderHeader(doc, data, colorScheme, templateConfig = null) {
         const companyName = templateConfig?.company?.name || 'Your Company Name';
         const companyLegalName = templateConfig?.company?.legalName || 'Legal Entity Name';
-        const companyAddress1 = templateConfig?.company?.address?.line1 || 'Address Line 1';
-        const companyAddress2 = templateConfig?.company?.address?.line2 || 'Address Line 2';
+        const companyAddress1 = templateConfig?.company?.address?.line1 || '';
+        const companyAddress2 = templateConfig?.company?.address?.line2 || '';
         const companyCity = templateConfig?.company?.address?.city || '';
         const companyState = templateConfig?.company?.address?.state || '';
         const companyPincode = templateConfig?.company?.address?.pincode || '';
@@ -92,12 +92,16 @@ export const minimalistTemplate = {
            .fillColor('#6b7280')
            .text(companyLegalName, 50, yPos);
         
-        yPos += bodyLineHeight;
-        doc.text(companyAddress1, 50, yPos);
-        
-        yPos += bodyLineHeight;
-        doc.text(companyAddress2, 50, yPos);
-        
+        if (companyAddress1) {
+            yPos += bodyLineHeight;
+            doc.text(companyAddress1, 50, yPos);
+        }
+
+        if (companyAddress2) {
+            yPos += bodyLineHeight;
+            doc.text(companyAddress2, 50, yPos);
+        }
+
         // Build city, state, pincode line
         yPos += bodyLineHeight;
         const locationParts = [companyCity, companyState, companyPincode].filter(Boolean);
